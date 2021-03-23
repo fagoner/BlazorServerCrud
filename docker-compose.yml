@@ -1,0 +1,13 @@
+version: "3.1"
+
+services:
+  blazor:
+    image: blazorcrud:latest
+    restart: always
+    ports:
+      - 8083:80
+
+networks: 
+  default:
+    external: 
+      name: backing-services_default

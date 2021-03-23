@@ -1,0 +1,61 @@
+@page "/people"
+
+@using BlazorServer.Models
+@using DataLibrary
+@using Microsoft.Extensions.Configuration
+@inject IDataAccess _data
+@inject IConfiguration _config
+
+
+@if (people == null)
+{
+    <em>loading..</em>
+}
+else
+{
+    <p>There is data</p>
+    <ul>
+
+
+    @foreach (var person in people)
+        {
+            <li>@person.Id - @person.Name</li>
+        }
+    </ul>
+
+    <input placeholder="name" @bind="newPerson" />
+    <button @onclick="AddPerson">Add person</button>
+}
+
+@code {
+    IEnumerable<PersonModel> people;
+
+    private string sqlSelectAll = "SELECT * from catalog.people";
+    private string sqlSavePerson = "INSERT INTO catalog.people(name) VALUES (@Name)";
+    private string newPerson = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected async Task LoadData()
+    {
+        string connectionString = _config.GetConnectionString("default");
+
+        people = await _data.LoadData<PersonModel, dynamic>(sqlSelectAll, new { },
+            connectionString);
+    }
+
+    private async Task AddPerson()
+    {
+        if (!string.IsNullOrWhiteSpace(newPerson.Trim()))
+        {
+            string connectionString = _config.GetConnectionString("default");
+            await _data.SaveData(sqlSavePerson, new { Name = newPerson }, connectionString);
+            newPerson = "";
+            await LoadData();
+        }
+    }
+
+}
